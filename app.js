@@ -53,13 +53,24 @@ formEl.innerHTML = `
 </div>
 `;
 const typeEl = formEl.querySelector('[data-id=type]');
-const urlEl = formEl.querySelector('[data-id=url]');
-const textEl = formEl.querySelector('[data-id=text]');
+let urlEl = formEl.querySelector('[data-id=url]');
+let textEl = formEl.querySelector('[data-id=text]');
 
 //Создаем LocalStorage для наших  инпутов
-// {
-//     url.value = localStorage.getItem('saved');
-// }
+{
+    urlEl.value = localStorage.getItem('saved');
+}
+
+{
+    textEl.value = localStorage.getItem('saved');
+}
+urlEl.addEventListener('input' , evt => {
+    localStorage.setItem('saved' , evt.currentTarget.value)
+});
+
+textEl.addEventListener('input' , evt => {
+    localStorage.setItem('saved' , evt.currentTarget.value)
+});
 
 
 
@@ -86,6 +97,7 @@ formEl.addEventListener('submit', (evt) => {
     urlEl.focus();
     api.postJSON('/posts', { id: 0, content: 'POST' }, data => {
         console.log(data);
+        localStorage.removeItem('saved');
     }, error => {
         console.log(error);
     });
@@ -98,7 +110,7 @@ postsEl.className = 'list-group';
 
 rootEl.appendChild(postsEl);
 
-function rebuildList(containerEl , items) {
+function rebuildList(containerEl, items) {
     for (const child of Array.from(containerEl.children)) {
         containerEl.removeChild(child);
     }
