@@ -1,31 +1,7 @@
 import { Api } from '/lib.js';
-const api = new Api('http://localhost:9999')
+// const api = new Api('http://localhost:9999');
+const api = new Api('https://expressapisecond.herokuapp.com')
 
-
-// api.getJSON('/posts', data => {
-//     console.log(data);
-// }, error => {
-//     console.log(error);
-// });
-
-api.postJSON('/posts', { id: 0, content: 'POST' }, data => {
-    console.log(data);
-}, error => {
-    console.log(error);
-});
-
-// Likes
-api.postJSON('/posts/1/likes', null, data => {
-    console.log(data);
-}, error => {
-    console.log(error);
-});
-// Dislikes
-api.postJSON('/posts/1/likes', null, data => {
-    console.log(data);
-}, error => {
-    console.log(error);
-});
 const posts = [];
 let nextId = 1;
 
@@ -58,18 +34,19 @@ let textEl = formEl.querySelector('[data-id=text]');
 
 //Создаем LocalStorage для наших  инпутов
 {
-    urlEl.value = localStorage.getItem('saved');
+    urlEl.value = localStorage.getItem('content');
 }
 
 {
-    textEl.value = localStorage.getItem('saved');
+    textEl.value = localStorage.getItem('type');
 }
-urlEl.addEventListener('input' , evt => {
-    localStorage.setItem('saved' , evt.currentTarget.value)
+urlEl.addEventListener('input', evt => {
+    localStorage.setItem('content', evt.currentTarget.value);
+    
 });
 
-textEl.addEventListener('input' , evt => {
-    localStorage.setItem('saved' , evt.currentTarget.value)
+textEl.addEventListener('input', evt => {
+    localStorage.setItem('type', evt.currentTarget.value);
 });
 
 
@@ -97,7 +74,8 @@ formEl.addEventListener('submit', (evt) => {
     urlEl.focus();
     api.postJSON('/posts', { id: 0, content: 'POST' }, data => {
         console.log(data);
-        localStorage.removeItem('saved');
+        localStorage.removeItem('content');
+        localStorage.removeItem('type');
     }, error => {
         console.log(error);
     });
@@ -113,5 +91,75 @@ rootEl.appendChild(postsEl);
 function rebuildList(containerEl, items) {
     for (const child of Array.from(containerEl.children)) {
         containerEl.removeChild(child);
+    };
+
+    for (const item of items) {
+        const el = document.createElement('li');
+        el.className = 'list-group-item';
+        el.dataset.id = `post-${item.id}`;//в 6 проекте были обычные двойные кавычки
+        if (item.type === 'image') {
+            el.innerHTML = `
+<img src="${item.url}" class="rounded" width="100" height="100">
+${item.text}
+<span class="badge badge-secondary">${item.likes}</span>
+<button type="button" class="btn btn-primary btn-sm" data-action="like">like</button>
+<button type="button" class="btn btn-primary btn-sm" data-action="dislike">dislike</button>
+`;
+        } else if (item.type === 'audio') {
+            el.innerHTML = `
+            <audio src="${item.url}" class="rounded" width="100" height="100" controls></audio>
+            ${item.text}
+            <span class="badge badge-secondary">${item.likes}</span>
+            <button type="button" class="btn btn-primary btn-sm" data-action="like">like</button>
+            <button type="button" class="btn btn-primary btn-sm" data-action="dislike">dislike</button>
+            `;
+        } else if (item.type === 'video') {
+            el.innerHTML = `
+            <video src="${item.url}" class="rounded" width="100" height="100" controls></video>
+            ${item.text} 
+            <span class="badge badge-secondary">${item.likes}</span>
+            <button type="button" class="btn btn-primary btn-sm" data-action="like">like</button>
+            <button type="button" class="btn btn-primary btn-sm" data-action="dislike">dislike</button>
+            `;
+        } else if (item.type === 'regular') {
+            el.innerHTML = `
+            <div class="rounded">${item.url}</div>
+            ${item.text}
+            <span class="badge badge-secondary">${item.likes}</span>
+            <button type="button" class="btn btn-primary btn-sm" data-action="like">like</button>
+            <button type="button" class="btn btn-primary btn-sm" data-action="dislike">dislike</button>
+            `;
+        }
+        el.querySelector('[data-action=like]').addEventListener('click', evt => {
+            item.likes++;
+            items.sort((a, b) => {
+                return a.likes - b.likes;
+            });
+
+            api.postJSON('/posts/1/likes', null, data => {
+                console.log(data);
+            }, error => {
+                console.log(error);
+            });
+            rebuildList(containerEl, items)
+        });
+        el.querySelector('[data-action=dislike]').addEventListener('click', evt => {
+            item.likes--;
+            items.sort((a, b) => {
+                return a.likes - b.likes;
+            });
+            api.deleteJSON('/posts/1/likes', null, data => {
+                console.log(data);
+            }, error => {
+                console.log(error);
+            });
+            rebuildList(containerEl, items)
+        });
+        api.getJSON('/posts', data => {
+            console.log(data);
+        }, error => {
+            console.log(error);
+        });
+        containerEl.insertBefore(el, containerEl.firstElementChild);
     }
 }
