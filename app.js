@@ -1,4 +1,4 @@
-import { Api } from '/lib.js';
+import { Api } from './lib.js';
 // const api = new Api('http://localhost:9999');
 const api = new Api('https://expressapisecond.herokuapp.com/posts')
 
