@@ -1,6 +1,6 @@
 import { Api } from './lib.js';
 // const api = new Api('http://localhost:9999');
-const api = new Api('https://expressapisecond.herokuapp.com/posts')
+const api = new Api('https://expressapisecond.herokuapp.com')
 
 const posts = [];
 let nextId = 1;
